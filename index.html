@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portfolio Manager</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-content">
+        <div class="logo">Portfolio Manager</div>
+        <div class="nav-controls">
+          <div class="search-container">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search assets..."
+              id="searchInput"
+            />
+          </div>
+          <div class="target-input-container">
+            <input
+              type="number"
+              class="target-input"
+              placeholder="Set Target Portfolio Value"
+              id="targetInput"
+              min="1000"
+              step="1000"
+            />
+            <button class="btn btn-primary" onclick="setTarget()">
+              Set Target
+            </button>
+          </div>
+          <button class="btn btn-secondary" onclick="refreshData()">
+            Refresh Data
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="main-container">
+      <div class="left-panel">
+        <div class="asset-form-section">
+          <h2 class="section-title">Asset Entry</h2>
+          <form class="asset-form" id="assetForm">
+            <div class="form-group">
+              <label class="form-label">Symbol</label>
+              <input
+                type="text"
+                class="form-input"
+                id="symbol"
+                placeholder="e.g., AAPL"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Company Name</label>
+              <input
+                type="text"
+                class="form-input"
+                id="companyName"
+                placeholder="e.g., Apple Inc."
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quantity</label>
+              <input
+                type="number"
+                class="form-input"
+                id="quantity"
+                placeholder="100"
+                min="1"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Buy Price ($)</label>
+              <input
+                type="number"
+                class="form-input"
+                id="buyPrice"
+                placeholder="150.00"
+                step="0.01"
+                min="0"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Threshold ($)</label>
+              <input
+                type="number"
+                class="form-input"
+                id="threshold"
+                placeholder="180.00"
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <button type="submit" class="btn btn-success">Add Asset</button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              onclick="removeSelectedAssets()"
+            >
+              Remove Selected
+            </button>
+          </form>
+        </div>
+
+        <div class="asset-table-section">
+          <h2 class="section-title">Holdings</h2>
+          <div class="table-container">
+            <table class="asset-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="selectAll" /></th>
+                  <th>Symbol</th>
+                  <th>Company Name</th>
+                  <th>Quantity</th>
+                  <th>Buy Price</th>
+                  <th>Current Price</th>
+                  <th>Threshold</th>
+                  <th>Return Value</th>
+                  <th>Last Updated</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="assetTableBody">
+                <tr>
+                  <td colspan="10" style="text-align: center; padding: 20px; color: #888;">
+                    Loading portfolio data...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="target-tracker-section">
+          <h3 class="section-title">Target Portfolio Value Tracker</h3>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                id="progressFill"
+                style="width: 0%"
+              ></div>
+            </div>
+            <div class="progress-text" id="progressText">
+              Set a target to track progress
+            </div>
+          </div>
+          <div class="target-details" id="targetDetails" style="display: none">
+            <div class="target-stats">
+              <div class="stat-item">
+                <span class="stat-label">Current Value:</span>
+                <span class="stat-value" id="currentValue">$0.00</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Target Value:</span>
+                <span class="stat-value" id="targetValue">$0.00</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Remaining:</span>
+                <span class="stat-value" id="remainingValue">$0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="performance-chart-section">
+          <h3 class="section-title">Performance Over Time</h3>
+          <div class="chart-container-large">
+            <canvas id="performanceChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <div class="sidebar-card">
+          <h3 class="section-title">Alert Notifications</h3>
+          <div id="alertContainer">
+            <div class="alert-item">
+              <span>Loading notifications...</span>
+              <span class="alert-icon">🔄</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <h3 class="section-title">Top Performing Assets</h3>
+          <div id="topPerformersContainer">
+            <div class="performance-item">
+              <span>Loading...</span>
+              <span class="performance-gain">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <h3 class="section-title">Selected Asset Details</h3>
+          <div id="assetDetailsContainer">
+            <p class="no-selection">
+              Select assets from the holdings table to view details
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="export-container">
+        <span>Export Portfolio Data:</span>
+        <button class="btn btn-primary" onclick="exportToCSV()">
+          Export as CSV
+        </button>
+      </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+  </body>
+</html>
